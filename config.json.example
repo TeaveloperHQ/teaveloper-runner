@@ -1,0 +1,7 @@
+{
+  "gatewayUrl": "wss://gw.teaveloper.com/_agent",
+  "slug": "class-abc",
+  "publicUrl": "https://class-abc.teaveloper.com",
+  "localPort": 8080,
+  "token": "tnl_xxxxxxxxxxxxxxxxxxxx"
+}

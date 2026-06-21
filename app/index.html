@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><meta charset="utf-8">
+<title>우리반 설문</title>
+<body style="font-family:system-ui;max-width:30rem;margin:3rem auto">
+<h1>우리반 설문</h1>
+<form id="f">
+  <input name="name" placeholder="이름" required><br><br>
+  <textarea name="answer" placeholder="답변"></textarea><br><br>
+  <button>제출</button>
+</form>
+<p id="msg"></p>
+<script>
+f.onsubmit = async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(f));
+  const r = await fetch('/api/responses', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  msg.textContent = r.ok ? '제출되었습니다. 감사합니다!' : '오류: ' + (await r.text());
+  if (r.ok) f.reset();
+};
+</script>
+</body></html>

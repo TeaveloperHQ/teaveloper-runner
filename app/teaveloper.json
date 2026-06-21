@@ -1,0 +1,8 @@
+{
+  "name": "우리반 설문",
+  "collections": {
+    "responses": "submissions",
+    "board": "public",
+    "settings": "private"
+  }
+}
