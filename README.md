@@ -1,3 +1,14 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Teaveloper Runner" width="520">
+</p>
+
+<p align="center">
+  <a href="https://github.com/TeaveloperHQ/teacher-runner/releases/latest"><img src="https://img.shields.io/github/v/release/TeaveloperHQ/teacher-runner?label=release" alt="release"></a>
+  <a href="https://github.com/TeaveloperHQ/teacher-runner/actions/workflows/build.yml"><img src="https://github.com/TeaveloperHQ/teacher-runner/actions/workflows/build.yml/badge.svg" alt="build"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license: MIT"></a>
+  <img src="https://img.shields.io/badge/platform-Windows-0078D6" alt="platform">
+</p>
+
 # Teaveloper 러너 (teacher-runner)
 
 내 컴퓨터를 **공짜 서버**로 만들어, AI가 만들어 준 앱(설문·기록·신청 등)을 외부
@@ -161,3 +172,22 @@ public 프리셋 전체 CRUD / private 전체 거부 / 미선언 컬렉션 404 /
 다중화(본문 base64). 인증 `Authorization: Bearer {token}`(403 시 재시도 안 함),
 쓰기 직렬화(writeMu) 필수, 30s ping/60s 무응답 끊김. 상세는 참조 레포
 `gateway/README.md`.
+
+### 아이콘
+앱/트레이 아이콘은 `assets/`에 있다(`icon.ico` 멀티사이즈, `icon.png`, 배너 `logo.png`).
+exe 아이콘은 `rsrc_windows_amd64.syso`로 임베드되며, Go 툴체인이 윈도우/amd64 빌드 시
+자동 링크한다(CI 추가 설정 불필요). 아이콘을 바꾸려면:
+```bash
+rsrc -ico assets/icon.ico -arch amd64 -o rsrc_windows_amd64.syso
+```
+
+### 연관 프로젝트
+- **게이트웨이/포털**: `github.com/aramorugeta/teacher-app-portal` (무저장 중계 + 토큰 발급).
+- **포털 연동 규격**: [PORTAL_INTEGRATION.md](PORTAL_INTEGRATION.md) — 포털이 제공해야 할
+  것(config.json·빌드·활성화 UX·AI 앱 생성 규격)을 계약으로 정리.
+
+---
+
+## 📄 라이선스
+
+[MIT](LICENSE) © 2026 TeaveloperHQ
