@@ -9,32 +9,29 @@
 
   <rect x="112" y="112" width="800" height="800" rx="184" fill="url(#g)"/>
 
-  <!-- 서버 → 죽방 3개로 뻗는 연결선 (노드/서버 뒤에 깔림) -->
+  <!-- 서버 → 죽방으로 뻗는 연결선. 끝을 죽방 하단보다 아래에서 끊어 띄움(가리지 않음) -->
   <g stroke="#ffffff" stroke-width="22" stroke-linecap="round">
-    <line x1="512" y1="700" x2="300" y2="332"/>
-    <line x1="512" y1="700" x2="512" y2="300"/>
-    <line x1="512" y1="700" x2="724" y2="332"/>
+    <line x1="512" y1="690" x2="300" y2="506"/>
+    <line x1="512" y1="690" x2="512" y2="482"/>
+    <line x1="512" y1="690" x2="724" y2="506"/>
   </g>
 
   <!-- 죽방 엠블럼 3개 (상단 노드) -->
   <g fill="#ffffff">
-    <!-- 좌 -->
     <circle cx="300" cy="332" r="48"/>
     <path d="M300 366 L246 476 L354 476 Z"/>
-    <!-- 중앙 -->
     <circle cx="512" cy="300" r="54"/>
     <path d="M512 336 L450 452 L574 452 Z"/>
-    <!-- 우 -->
     <circle cx="724" cy="332" r="48"/>
     <path d="M724 366 L670 476 L778 476 Z"/>
   </g>
 
-  <!-- 서버(하단) -->
-  <rect x="356" y="690" width="312" height="150" rx="34" fill="#ffffff"/>
+  <!-- 서버(하단) — 좌우로 넓힘 -->
+  <rect x="288" y="690" width="448" height="150" rx="34" fill="#ffffff"/>
   <g fill="url(#g)">
-    <circle cx="398" cy="732" r="13"/>
-    <rect x="440" y="725" width="190" height="15" rx="7"/>
-    <circle cx="398" cy="792" r="13"/>
-    <rect x="440" y="785" width="190" height="15" rx="7"/>
+    <circle cx="338" cy="732" r="13"/>
+    <rect x="382" y="725" width="306" height="15" rx="7"/>
+    <circle cx="338" cy="792" r="13"/>
+    <rect x="382" y="785" width="306" height="15" rx="7"/>
   </g>
 </svg>
