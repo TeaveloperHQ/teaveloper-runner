@@ -17,14 +17,15 @@ SetCompressor /SOLID lzma
 !define COMPANY    "TeaveloperHQ"
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 
+; 경로는 이 .nsi 파일(installer/) 기준 → 저장소 루트는 ..\
 Name "${APPNAME}"
-OutFile "dist\teaveloper-runner-setup.exe"
+OutFile "..\dist\teaveloper-runner-setup.exe"
 RequestExecutionLevel user
 InstallDir "$LOCALAPPDATA\Programs\${APPNAME}"
 InstallDirRegKey HKCU "Software\${APPNAME}" "InstallDir"
 
-!define MUI_ICON   "assets\icon.ico"
-!define MUI_UNICON "assets\icon.ico"
+!define MUI_ICON   "..\assets\icon.ico"
+!define MUI_UNICON "..\assets\icon.ico"
 !define MUI_ABORTWARNING
 
 ; ── 설치 페이지 ──
@@ -49,7 +50,7 @@ InstallDirRegKey HKCU "Software\${APPNAME}" "InstallDir"
 Section "${APPNAME} (필수)" SecCore
   SectionIn RO
   SetOutPath "$INSTDIR"
-  File "dist\${EXE}"
+  File "..\dist\${EXE}"
   CreateDirectory "$INSTDIR\app"
 
   ; 바로가기 (시작 메뉴 + 바탕화면)
