@@ -3,11 +3,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/TeaveloperHQ/teacher-runner/releases/latest"><img src="https://img.shields.io/github/v/release/TeaveloperHQ/teacher-runner?label=release" alt="release"></a>
-  <a href="https://github.com/TeaveloperHQ/teacher-runner/actions/workflows/build.yml"><img src="https://github.com/TeaveloperHQ/teacher-runner/actions/workflows/build.yml/badge.svg" alt="build"></a>
+  <a href="https://github.com/TeaveloperHQ/teacher-runner/actions/workflows/build.yml"><img src="https://github.com/TeaveloperHQ/teacher-runner/actions/workflows/build.yml/badge.svg" alt="ci"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license: MIT"></a>
   <img src="https://img.shields.io/badge/platform-Windows-0078D6" alt="platform">
 </p>
+
+<p align="center"><sub>배포용 exe 는 <b>teaveloper 포털에서 빌드</b>합니다(앱 이름 통일성). 이 레포는 소스이며 GitHub 릴리스로 exe 를 배포하지 않습니다.</sub></p>
 
 # Teaveloper 러너 (teacher-runner)
 
