@@ -1,6 +1,5 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- teaveloper 공식 브랜드 그라데이션 -->
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%"   stop-color="#6366f1"/>
       <stop offset="50%"  stop-color="#8b5cf6"/>
@@ -8,21 +7,25 @@
     </linearGradient>
   </defs>
 
-  <!-- 브랜드 라운드 사각형 -->
   <rect x="112" y="112" width="800" height="800" rx="184" fill="url(#g)"/>
 
-  <!-- 서버 섀시: Q 대신 서버를 뜻하는 둥근 사각형 프레임 -->
-  <rect x="232" y="232" width="560" height="560" rx="150" fill="none" stroke="#ffffff" stroke-width="72"/>
+  <!-- 네트워크 연결선 (삼각 메시) — 노드 뒤 -->
+  <g stroke="#ffffff" stroke-width="26" stroke-linecap="round">
+    <line x1="512" y1="332" x2="356" y2="650"/>
+    <line x1="512" y1="332" x2="668" y2="650"/>
+    <line x1="356" y1="650" x2="668" y2="650"/>
+  </g>
 
-  <!-- teaveloper 엠블럼(죽방: 흰 사람/키홀) — 유지, 상단 배치 -->
-  <circle cx="512" cy="392" r="78" fill="#ffffff"/>
-  <path d="M512 448 L420 606 L604 606 Z" fill="#ffffff"/>
-
-  <!-- 서버 슬롯(랙 유닛) 2단 + LED(그라데이션 cut-out, on-brand) -->
-  <g>
-    <rect x="320" y="640" width="384" height="48" rx="24" fill="#ffffff"/>
-    <circle cx="360" cy="664" r="13" fill="url(#g)"/>
-    <rect x="320" y="704" width="384" height="48" rx="24" fill="#ffffff"/>
-    <circle cx="360" cy="728" r="13" fill="url(#g)"/>
+  <!-- 죽방 엠블럼 3개 (네트워크 노드) -->
+  <g fill="#ffffff">
+    <!-- A 상단 -->
+    <circle cx="512" cy="332" r="58"/>
+    <path d="M512 372 L442 492 L582 492 Z"/>
+    <!-- B 좌하 -->
+    <circle cx="356" cy="650" r="58"/>
+    <path d="M356 690 L286 810 L426 810 Z"/>
+    <!-- C 우하 -->
+    <circle cx="668" cy="650" r="58"/>
+    <path d="M668 690 L598 810 L738 810 Z"/>
   </g>
 </svg>
