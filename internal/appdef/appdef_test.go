@@ -72,6 +72,48 @@ func TestPublicAllows(t *testing.T) {
 	}
 }
 
+// 소유자 스코프(개별 코드 열람) 파싱·권한.
+func TestOwnerScope(t *testing.T) {
+	raw := `{"collections":{"results":{"write":true,"owner":{"field":"code","read":true,"edit":true}}}}`
+	var d Def
+	if err := json.Unmarshal([]byte(raw), &d); err != nil {
+		t.Fatal(err)
+	}
+	if err := d.validate(); err != nil {
+		t.Fatal(err)
+	}
+	p := d.Collections["results"]
+	if p.Owner == nil || p.Owner.Field != "code" || !p.Owner.Read || !p.Owner.Edit {
+		t.Fatalf("owner 파싱 실패: %+v", p.Owner)
+	}
+	// 비스코프(누구나): write 만, read 는 막힘
+	if !p.AllowsPublic("POST") {
+		t.Error("write 는 누구나 허용돼야")
+	}
+	if p.AllowsPublic("GET") {
+		t.Error("비스코프 read 는 막혀야")
+	}
+	// 소유자(코드 보유자): read+edit, write 아님
+	if !p.Owner.Allows("GET") || !p.Owner.Allows("PATCH") || !p.Owner.Allows("DELETE") {
+		t.Error("owner read/edit 허용돼야")
+	}
+	if p.Owner.Allows("POST") {
+		t.Error("owner 는 POST(write) 가 아님")
+	}
+	// 빈 owner.field 는 거부
+	var d2 Def
+	if json.Unmarshal([]byte(`{"collections":{"x":{"owner":{"field":"","read":true}}}}`), &d2) == nil {
+		if d2.validate() == nil {
+			t.Error("빈 owner.field 가 통과됨")
+		}
+	}
+	// owner 라벨
+	op := CollectionPerm{Write: true, Owner: &OwnerScope{Field: "code", Read: true, Edit: true}}
+	if got := op.Label(); got != "제출 받기 + 본인읽기·편집" {
+		t.Errorf("owner label=%q", got)
+	}
+}
+
 // 잘못된 프리셋 문자열은 거부.
 func TestBadPreset(t *testing.T) {
 	var d Def
@@ -86,7 +128,7 @@ func TestLabel(t *testing.T) {
 	cases := map[CollectionPerm]string{
 		{Write: true}:                         "제출 받기",
 		{Read: true, Write: true, Edit: true}: "공개",
-		{}:                                     "나만(차단)",
+		{}:                                     "차단",
 		{Read: true}:                           "읽기",
 		{Read: true, Edit: true}:               "읽기·편집",
 	}

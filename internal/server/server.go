@@ -8,6 +8,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -122,7 +123,7 @@ func (s *Server) AdminURL() string {
 
 func (s *Server) handleCreate(w http.ResponseWriter, r *http.Request) {
 	col := r.PathValue("collection")
-	if !s.gate(w, r, col, http.MethodPost) {
+	if ok, _ := s.gate(w, r, col, http.MethodPost); !ok {
 		return
 	}
 	if n, _ := s.store.Count(col); n >= maxRecords {
@@ -144,7 +145,8 @@ func (s *Server) handleCreate(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
 	col := r.PathValue("collection")
-	if !s.gate(w, r, col, http.MethodGet) {
+	ok, sc := s.gate(w, r, col, http.MethodGet)
+	if !ok {
 		return
 	}
 	q := r.URL.Query()
@@ -166,6 +168,9 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	if sc != nil {
+		opts.Filters[sc.field] = sc.code // 소유자 스코프: 자기 코드 레코드만
+	}
 	list, err := s.store.List(col, opts)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, err.Error())
@@ -176,7 +181,8 @@ func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 	col := r.PathValue("collection")
-	if !s.gate(w, r, col, http.MethodGet) {
+	ok, sc := s.gate(w, r, col, http.MethodGet)
+	if !ok {
 		return
 	}
 	rec, err := s.store.Get(col, r.PathValue("id"))
@@ -188,13 +194,25 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if !ownerMatch(rec, sc) {
+		writeErr(w, http.StatusNotFound, "레코드를 찾을 수 없습니다.") // 남의 것은 존재 자체를 숨김
+		return
+	}
 	writeJSON(w, http.StatusOK, rec)
 }
 
 func (s *Server) handlePatch(w http.ResponseWriter, r *http.Request) {
 	col := r.PathValue("collection")
-	if !s.gate(w, r, col, http.MethodPatch) {
+	ok, sc := s.gate(w, r, col, http.MethodPatch)
+	if !ok {
 		return
+	}
+	if sc != nil { // 소유자 스코프: 자기 코드 레코드만 수정
+		cur, gerr := s.store.Get(col, r.PathValue("id"))
+		if gerr != nil || !ownerMatch(cur, sc) {
+			writeErr(w, http.StatusNotFound, "레코드를 찾을 수 없습니다.")
+			return
+		}
 	}
 	body, err := readBody(w, r)
 	if err != nil {
@@ -215,8 +233,16 @@ func (s *Server) handlePatch(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 	col := r.PathValue("collection")
-	if !s.gate(w, r, col, http.MethodDelete) {
+	ok, sc := s.gate(w, r, col, http.MethodDelete)
+	if !ok {
 		return
+	}
+	if sc != nil { // 소유자 스코프: 자기 코드 레코드만 삭제
+		cur, gerr := s.store.Get(col, r.PathValue("id"))
+		if gerr != nil || !ownerMatch(cur, sc) {
+			writeErr(w, http.StatusNotFound, "레코드를 찾을 수 없습니다.")
+			return
+		}
 	}
 	err := s.store.Delete(col, r.PathValue("id"))
 	if err == store.ErrNotFound {
@@ -230,31 +256,61 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
-// gate 는 컬렉션 선언 여부 + 공개 요청의 프리셋 권한 + 레이트리밋을 강제한다.
-// 통과하면 true. 막으면 응답을 쓰고 false.
-func (s *Server) gate(w http.ResponseWriter, r *http.Request, collection, method string) bool {
+// ownerScope 는 "소유자 코드로 스코프된" 접근을 나타낸다. gate 가 반환하면 핸들러는
+// 해당 코드와 일치하는 레코드에만 동작해야 한다.
+type ownerScope struct {
+	field string
+	code  string
+}
+
+// ownerMatch 는 레코드가 스코프 코드의 소유인지 본다(필드 값 == 코드, 문자열 비교).
+func ownerMatch(rec map[string]any, sc *ownerScope) bool {
+	if sc == nil {
+		return true
+	}
+	v, ok := rec[sc.field]
+	if !ok {
+		return false
+	}
+	return fmt.Sprintf("%v", v) == sc.code
+}
+
+// gate 는 컬렉션 선언 여부 + 공개 요청 권한 + 레이트리밋을 강제한다.
+// 통과하면 (true, sc). sc != nil 이면 핸들러가 그 코드로 레코드를 스코프해야 한다.
+func (s *Server) gate(w http.ResponseWriter, r *http.Request, collection, method string) (bool, *ownerScope) {
 	def := s.currentDef()
 	if def == nil {
 		writeErr(w, http.StatusServiceUnavailable, "앱이 아직 로드되지 않았습니다. ./app/teaveloper.json 을 넣고 다시 시도하세요.")
-		return false
+		return false, nil
 	}
-	if !def.Declared(collection) {
+	perm, declared := def.Perm(collection)
+	if !declared {
 		writeErr(w, http.StatusNotFound, "선언되지 않은 컬렉션입니다: "+collection+" (teaveloper.json 의 collections 에 추가하세요)")
-		return false
+		return false, nil
 	}
-	if isPublic(r) {
-		// 공개 요청에만 레이트리밋 적용(로컬 소유자는 신뢰).
-		if !s.limiter.allow(clientIP(r)) {
-			writeErr(w, http.StatusTooManyRequests, "요청이 너무 많습니다. 잠시 후 다시 시도하세요.")
-			return false
-		}
-		allowed, _ := def.PublicAllows(collection, method)
-		if !allowed {
-			writeErr(w, http.StatusForbidden, "이 작업은 외부 방문자에게 허용되지 않습니다(프리셋 제한).")
-			return false
-		}
+	if !isPublic(r) {
+		return true, nil // 로컬 소유자 = 전체 권한(스코프 없음)
 	}
-	return true
+	// 공개 요청에만 레이트리밋 적용(로컬 소유자는 신뢰).
+	if !s.limiter.allow(clientIP(r)) {
+		writeErr(w, http.StatusTooManyRequests, "요청이 너무 많습니다. 잠시 후 다시 시도하세요.")
+		return false, nil
+	}
+	// 1) 비스코프(누구나) 권한이 있으면 전체 허용.
+	if perm.AllowsPublic(method) {
+		return true, nil
+	}
+	// 2) 소유자 스코프 — ?{field}=코드 가 있어야 하고, 그 코드 레코드에만.
+	if perm.Owner.Allows(method) {
+		code := r.URL.Query().Get(perm.Owner.Field)
+		if code == "" {
+			writeErr(w, http.StatusForbidden, "본인 코드가 필요합니다(?"+perm.Owner.Field+"=... 형식).")
+			return false, nil
+		}
+		return true, &ownerScope{field: perm.Owner.Field, code: code}
+	}
+	writeErr(w, http.StatusForbidden, "이 작업은 외부 방문자에게 허용되지 않습니다(권한 제한).")
+	return false, nil
 }
 
 // ── 정적 프론트 ───────────────────────────────────────────
