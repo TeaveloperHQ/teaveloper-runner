@@ -39,7 +39,8 @@ func (s *Server) handleAdminPage(w http.ResponseWriter, r *http.Request) {
 func (s *Server) adminStatus(w http.ResponseWriter, r *http.Request) {
 	st := s.getStatus()
 	writeJSON(w, http.StatusOK, map[string]any{
-		"state":     st.State.String(),
+		"state":     st.State.String(), // 화면용 한국어(표현이 바뀔 수 있음)
+		"code":      st.State.Code(),   // 기계용 안정 코드(외부 도구가 이걸 본다)
 		"message":   st.Message,
 		"publicUrl": s.cfg.PublicURL,
 		"slug":      s.cfg.Slug,
