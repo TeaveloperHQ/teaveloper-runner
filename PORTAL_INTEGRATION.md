@@ -45,7 +45,7 @@
 | `gatewayUrl` | string | 고정 `wss://gw.teaveloper.com/_agent` (운영). `ws://`/`wss://`만 허용 |
 | `slug` | string | 터널 슬러그(영문/숫자/하이픈, **점 불가** — 단일 라벨) |
 | `publicUrl` | string | `https://{slug}.teaveloper.com` — 교사·학생에게 보여줄 주소 |
-| `localPort` | int(1–65535) | 교사 PC에서 러너가 열 로컬 포트. 기본 `8080` 권장 |
+| `localPort` | int(1–65535) | 교사 PC에서 러너가 열 로컬 포트. 포털 구현은 `localPortHint ?? 8473` 을 넣는다 |
 | `token` | string | 베어러 토큰 `tnl_...`. 게이트웨이가 이 토큰으로 검증 |
 
 검증 규칙(러너 측 `internal/config`):
@@ -60,6 +60,9 @@ slug에 `.`이 있으면 라우팅 거부 → slug에 점을 넣지 말 것.
 넣어도 된다** — CLI 활성화(§4.1)를 쓰면 CLI 가 저장 직전에 실제로 빈 포트로 이 필드를
 덮어쓴다. 수동 경로(§4.2)에서만 이 값이 그대로 쓰이며, 그때는 충돌 시 교사가 메모장으로
 고쳐야 한다(그래서 CLI 경로가 권장이다).
+
+> 예시 JSON 의 `8080` 은 읽기 쉬우라고 쓴 값이고, 실제 포털이 넣는 기본값은 `8473` 이다
+> (흔한 포트를 피하려는 선택). 어느 쪽이든 CLI 경로에서는 실측한 빈 포트로 덮어쓴다.
 
 > (선택·비권장) 포털이 교사별 exe에 설정을 구워넣고 싶으면 빌드 시
 > `-ldflags "-X .../internal/config.bakedJSON=<json>"` 로 주입 가능. 단 **기본 경로는
